@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Customer Page</title>
+
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #eef2ff, #f8fafc);
+            margin: 0;
+            padding: 30px;
+        }
+
+        h1 {
+            text-align: center;
+            color: #1e293b;
+            margin-bottom: 25px;
+            font-size: 32px;
+        }
+
+        a {
+            text-decoration: none;
+            margin-right: 20px;
+            font-weight: 600;
+            color: #4f46e5;
+            transition: 0.3s;
+        }
+
+        a:hover {
+            color: #1e3a8a;
+        }
+
+        input {
+            padding: 10px 12px;
+            margin: 10px 5px;
+            border-radius: 8px;
+            border: 1px solid #d1d5db;
+            width: 220px;
+            outline: none;
+            transition: 0.3s;
+        }
+
+        input:focus {
+            border-color: #4f46e5;
+            box-shadow: 0 0 5px rgba(79, 70, 229, 0.3);
+        }
+
+        button {
+            padding: 10px 16px;
+            margin: 10px 5px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            color: white;
+            font-weight: 600;
+            transition: 0.3s;
+        }
+
+        #addCustomer {
+            background: linear-gradient(135deg, #22c55e, #16a34a);
+        }
+
+        #updateCustomer {
+            background: linear-gradient(135deg, #0ea5e9, #0284c7);
+        }
+
+        #deleteCustomer {
+            background: linear-gradient(135deg, #ef4444, #dc2626);
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 12px rgba(0,0,0,0.15);
+        }
+
+        table {
+            width: 100%;
+            margin-top: 30px;
+            border-collapse: collapse;
+            background-color: white;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.08);
+        }
+
+        th {
+            background: linear-gradient(135deg, #4f46e5, #4338ca);
+            color: white;
+            padding: 14px;
+            font-size: 15px;
+        }
+
+        td {
+            padding: 12px;
+            border-bottom: 1px solid #f1f5f9;
+            text-align: center;
+            color: #334155;
+        }
+
+        tr:hover {
+            background-color: #f8fafc;
+        }
+
+        #customerTable {
+            margin-top: 20px;
+        }
+    </style>
+
+</head>
+<body>
+<a href="../index.html" id="home">Home Page</a>
+<a href="item.html">Item Pge</a>
+<a href="place-order.html">Place Order</a>
+<h1>Customer Page</h1>
+
+<input id="id" type="text" placeholder="Customer ID">
+<input id="name" type="text" placeholder="Customer Name">
+<input id="address" type="text" placeholder="Customer Address">
+
+<button onclick="saveCustomer()" id="addCustomer">Add Customer</button>
+<button onclick="updateCustomer()" id="updateCustomer">Update Customer</button>
+<button ONCLICK="deleteCustomer()" id="deleteCustomer">Delete Customer</button>
+
+<table id="customerTable">
+    <thead>
+      <tr>
+          <th> ID</th>
+          <th> Name</th>
+          <th> Address</th>
+      </tr>
+    </thead>
+    <tbody id="tablebody"></tbody>
+</table>
+
+<script src="../accest/js/jquery-3.6.4.min.js"></script>
+<script>
+    function saveCustomer() {
+
+       const custId =$("#id").val();
+       const name = $("#name").val();
+       const address = $("#address").val().trim();
+
+       if(!custId){
+           alert("Custom Id is empty");
+           return;
+       }
+       if(!name){
+           alert("Name is empty");
+           return;
+       }
+       const namePattern = /^[a-zA-Z\s'-]+$/;
+       if(!namePattern.test(name)) {
+           alert("Name must be a valid name");
+           return;
+       }
+       if(!address){
+           alert("Address is empty");
+           return;
+       }
+       if(address.length<10 || address.length>50){
+           alert("Address must be between 10 and 50 characters");
+           return;
+       }
+
+        $.ajax({
+            url:'http://localhost:8080/api/v1/customer',
+            method: 'POST',
+            contentType:'application/json',
+            data:JSON.stringify({
+                id: custId,
+                name: name,
+                address : address
+            }),
+            success:function (response){
+                if(response.status==201){
+                    alert(response.message)
+                }else {
+                    alert("customer not saved, try again..")
+                }
+                clearForm()
+                console.log(response)
+             //   alert("failed")
+                getAll();
+            },
+            error:function(error){
+                console.log(error)
+            }
+
+        });
+    }
+
+    function updateCustomer(){
+        const custId =$("#id").val();
+        const name = $("#name").val();
+        const address = $("#address").val()
+
+        if(!custId){
+            alert("Custom Id is empty");
+            return;
+        }
+        if(!name){
+            alert("Name is empty");
+            return;
+        }
+        const namePattern = /^[a-zA-Z\s'-]+$/;
+        if(!namePattern.test(name)) {
+            alert("Name must be a valid name");
+            return;
+        }
+        if(!address){
+            alert("Address is empty");
+            return;
+        }
+        if(address.length<10 || address.length>50){
+            alert("Address must be between 10 and 50 characters");
+            return;
+        }
+        $.ajax({
+            url:'http://localhost:8080/api/v1/customer',
+            method: 'PUT',
+            contentType:'application/json',
+            data:JSON.stringify({
+                id: custId,
+                name: name,
+                address : address
+            }),
+            success:function (response){
+                if (response.status==200){
+                    alert(response.message)
+                }else {
+                    alert("Customer Not Updated")
+                }
+                clearForm()
+                console.log(response)
+                getAll();
+            },
+            error:function(error){
+                console.log(error)
+            }
+
+        });
+    }
+    function deleteCustomer(){
+        const custId = $("#id").val();
+
+        $.ajax({
+            url:'http://localhost:8080/api/v1/customer/'+custId,
+            method: 'DELETE',
+            success:function (response) {
+                if (response.status==200){
+                    alert(response.message)
+                 }
+                    // else {
+                //     alert("Customer not deleted")
+                // }
+                clearForm()
+                getAll();
+            },
+            error:function (error) {
+                console.log(error)
+                alert("Customer Not found")
+            }
+        })
+
+    }
+    function getAll(){
+        $("#tablebody").empty();
+        $.ajax({
+            url:'http://localhost:8080/api/v1/customer',
+            method: 'GET',
+            success:function (response){
+                console.log(response)
+                for (let customer of response){
+                    const tablerow = "<tr>" +
+                        "<td>" + customer.id + "</td>" +
+                        "<td>" + customer.name + "</td>" +
+                        "<td>" + customer.address + "</td>" +
+                        "</tr>"
+                    $("#tablebody").append(tablerow);
+                }
+            },
+            error:function (response){
+                console.log(response)
+            }
+        })
+    }
+    window.onload(
+        getAll()
+    )
+    function clearForm(){
+        let field1 = document.getElementById("id");
+        field1.value = "";
+
+        let field2 = document.getElementById("name");
+        field2.value = "";
+
+        let field3 = document.getElementById("address");
+        field3.value = "";
+    }
+</script>
+</body>
+</html>

@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Order Page</title>
+
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #eef2ff, #f8fafc);
+            margin: 0;
+            padding: 30px;
+        }
+
+        h1 {
+            text-align: center;
+            color: #1e293b;
+            margin-bottom: 25px;
+            font-size: 32px;
+        }
+
+        a {
+            text-decoration: none;
+            margin-right: 20px;
+            font-weight: 600;
+            color: #4f46e5;
+            transition: 0.3s;
+        }
+
+        a:hover {
+            color: #1e3a8a;
+        }
+
+        input, select {
+            padding: 10px 12px;
+            margin: 10px 5px;
+            border-radius: 8px;
+            border: 1px solid #d1d5db;
+            width: 220px;
+            outline: none;
+            transition: 0.3s;
+        }
+
+        input:focus, select:focus {
+            border-color: #4f46e5;
+            box-shadow: 0 0 5px rgba(79, 70, 229, 0.3);
+        }
+
+        button {
+            padding: 10px 16px;
+            margin: 10px 5px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            color: white;
+            font-weight: 600;
+            transition: 0.3s;
+        }
+
+        button:first-of-type {
+            background: linear-gradient(135deg, #0ea5e9, #0284c7);
+        }
+
+        button:last-of-type {
+            background: linear-gradient(135deg, #22c55e, #16a34a);
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 12px rgba(0,0,0,0.15);
+        }
+
+        table {
+            width: 100%;
+            margin-top: 30px;
+            border-collapse: collapse;
+            background-color: white;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.08);
+        }
+
+        th {
+            background: linear-gradient(135deg, #4f46e5, #4338ca);
+            color: white;
+            padding: 14px;
+            font-size: 15px;
+        }
+
+        td {
+            padding: 12px;
+            border-bottom: 1px solid #f1f5f9;
+            text-align: center;
+            color: #334155;
+        }
+
+        tr:hover {
+            background-color: #f8fafc;
+        }
+    </style>
+</head>
+<body>
+     <a href="../index.html" id="home">Home Page</a>
+     <a href="customer.html" id="customer">Customer Page</a>
+     <a href="item.html">Item Pge</a>
+     <h1>Place Order</h1>
+    <input type="text" id="order-id" placeholder="Order ID">
+    <select id="customer-id">
+        <option value="">Select Customer</option>
+    </select>
+    <select id="item-id" >
+        <option value="">Select Item</option>
+    </select>
+    <input type="number" id="quantity" placeholder="Quantity">
+
+    <button onclick="addToCart()">Add To Cart</button>
+    <button onclick="placeOrder()">Place Order</button>
+
+    <table border="1">
+        <thead>
+        <tr>
+            <th>Item Id</th>
+            <th>Qty</th>
+            <th>Unit Price</th>
+        </tr>
+        </thead>
+        <tbody id="cart-body"></tbody>
+    </table>
+    <script src="../accest/js/jquery-3.6.4.min.js"></script>
+
+<script>
+    let cart = [];
+
+    function loadCustomers(){
+        $.ajax({
+            url: "http://localhost:8080/api/v1/customer",
+            method: "GET",
+            success: function (response){
+                for(let customer of response){
+                    $("#customer-id").append(
+                        `<option value="${customer.id}">${customer.id}</option>`
+                    );
+                }
+            }
+        });
+    }
+
+    function loadItems(){
+        $.ajax({
+            url: "http://localhost:8080/api/v1/item",
+            method: 'GET',
+            success: function (response){
+                for(let item of response){
+                    $("#item-id").append(
+                        `<option value="${item.id}">${item.id}</option>`
+                    )
+                }
+            }
+        })
+    }
+
+    function addToCart(){
+        const itemId = $("#item-id").val();
+        const qty = $("#quantity").val();
+
+        if (!itemId || !qty){
+            alert("Select item and quantity");
+            return;
+        }
+
+        $.ajax({
+            url: "http://localhost:8080/api/v1/item/" + itemId,
+            method: 'GET',
+            success: function (item){
+                const availableQty = item.quantity;
+
+                if(qty > availableQty){
+                    alert(`Out of stock? available quantity: ${availableQty} `);
+                    return;
+                }
+                const existingItem = cart.find(ci => ci.itemId === item.id);
+                if (existingItem) {
+                    if ((existingItem.itemQty + qty) > availableQty) {
+                        alert(`Out of stock! You already have ${existingItem.itemQty} in cart. Max available: ${availableQty}`);
+                        return;
+                    }
+                    existingItem.itemQty += qty;
+                }else {
+                    const cartItem = {
+                        itemId: item.id,
+                        itemQty: parseInt(qty),
+                        unitPrice: item.price
+                    };
+                    cart.push(cartItem);
+                }
+
+                let cartHTML = '';
+                for (let ci of cart) {
+                    cartHTML += `<tr>
+                                <td>${ci.itemId}</td>
+                                <td>${ci.itemQty}</td>
+                                <td>${ci.unitPrice}</td>
+                             </tr>`;
+                }
+                $("#cart-body").html(cartHTML);
+
+
+                $("#quantity").val('');
+            }
+        })
+    }
+
+    function placeOrder(){
+
+        const orderId = $("#order-id").val();
+        const customerId = $("#customer-id").val();
+
+        if(!orderId){
+            alert("Enter order id");
+            return;
+        }
+        if (!customerId){
+            alert("Select customerId");
+            return;
+        }
+        if(cart.length == 0){
+            alert("Cart is empty");
+            return;
+        }
+
+        const orderDate = {
+            orderID: orderId,
+            date: new Date().toISOString().split("T")[0],
+            customerID: customerId,
+            orderDetailDTOList: cart
+        };
+
+        $.ajax({
+            url: "http://localhost:8080/api/v1/order",
+            method: 'POST',
+            contentType: "application/json",
+            data: JSON.stringify(orderDate),
+            success: function (resp){
+                if (resp.status==201){
+                    alert(resp.message)
+                }else {
+                    alert("Error placing order")
+                }
+                location.reload();
+            },
+            error: function (error){
+                console.log(error);
+              //  alert("Error Placing order")
+            }
+        });
+    }
+    window.onload = function (){
+        loadCustomers();
+        loadItems();
+    }
+</script>
+
+</body>
+</html>

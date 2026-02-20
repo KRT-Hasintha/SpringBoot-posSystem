@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Item Page</title>
+
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #eef2ff, #f8fafc);
+            margin: 0;
+            padding: 30px;
+        }
+
+        h1 {
+            text-align: center;
+            color: #1e293b;
+            margin-bottom: 25px;
+            font-size: 32px;
+        }
+
+        a {
+            text-decoration: none;
+            margin-right: 20px;
+            font-weight: 600;
+            color: #4f46e5;
+            transition: 0.3s;
+        }
+
+        a:hover {
+            color: #1e3a8a;
+        }
+
+        input {
+            padding: 10px 12px;
+            margin: 10px 5px;
+            border-radius: 8px;
+            border: 1px solid #d1d5db;
+            width: 220px;
+            outline: none;
+            transition: 0.3s;
+        }
+
+        input:focus {
+            border-color: #4f46e5;
+            box-shadow: 0 0 5px rgba(79, 70, 229, 0.3);
+        }
+
+        button {
+            padding: 10px 16px;
+            margin: 10px 5px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            color: white;
+            font-weight: 600;
+            transition: 0.3s;
+        }
+
+        #addItem {
+            background: linear-gradient(135deg, #22c55e, #16a34a);
+        }
+
+        #updateCustomer {
+            background: linear-gradient(135deg, #0ea5e9, #0284c7);
+        }
+
+        #deleteCustomer {
+            background: linear-gradient(135deg, #ef4444, #dc2626);
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 12px rgba(0,0,0,0.15);
+        }
+
+        table {
+            width: 100%;
+            margin-top: 30px;
+            border-collapse: collapse;
+            background-color: white;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.08);
+        }
+
+        th {
+            background: linear-gradient(135deg, #4f46e5, #4338ca);
+            color: white;
+            padding: 14px;
+            font-size: 15px;
+        }
+
+        td {
+            padding: 12px;
+            border-bottom: 1px solid #f1f5f9;
+            text-align: center;
+            color: #334155;
+        }
+
+        tr:hover {
+            background-color: #f8fafc;
+        }
+    </style>
+</head>
+<body>
+<a href="../index.html" id="home">Home Page</a>
+<a href="customer.html" id="customer">Customer Page</a>
+<a href="place-order.html">Place Order</a>
+<h1>Item Page</h1>
+
+<input id="id" type="text" placeholder="item ID">
+<input id="name" type="text" placeholder="item Name">
+<input id="price" type="text" placeholder="item Price">
+<input id="qty" type="text" placeholder="item Quantity">
+
+<button onclick="saveItem()" id="addItem">Add Item</button>
+<button onclick="updateItem()" id="updateCustomer">Update Item</button>
+<button onclick="deleteItem()" id="deleteCustomer">Delete Item</button>
+
+<table id="customerTable">
+    <thead>
+    <tr>
+        <th> ID</th>
+        <th> Name</th>
+        <th> Price</th>
+        <th> Quantity</th>
+    </tr>
+    </thead>
+    <tbody id="tablebody"></tbody>
+</table>
+<script src="../accest/js/jquery-3.6.4.min.js"></script>
+<script>
+    function saveItem(){
+        const id = $("#id").val()
+        const name = $("#name").val()
+        const price = $("#price").val()
+        const qty = $("#qty").val()
+
+        if(!id){
+            alert("Please enter ID")
+            return;
+        }
+        if(!name){
+            alert("Please enter Name")
+            return;
+        }
+        if(!price){
+            alert("Please enter Price")
+            return;
+        }
+        if (isNaN(price)||Number(price) <= 0) {
+            alert("Price must be a positive number")
+            return;
+        }
+        if (!qty){
+            alert("Please enter Quantity")
+        }
+        if (isNaN(qty)||Number(qty) <= 1) {
+            alert("Quantity must be at least 1")
+            return;
+        }
+
+        $.ajax({
+            url:'http://localhost:8080/api/v1/item',
+            method: 'POST',
+            contentType:'application/json',
+            data:JSON.stringify({
+                id: id,
+                name: name,
+                price:Number(price),
+                quantity:Number(qty)
+            }),
+            success: function (resp){
+                if (resp.status==201){
+                    alert(resp.message)
+                }else {
+                    alert("Item not save ... try again")
+                }
+                clearForm()
+                console.log(resp)
+                getAll()
+            },
+            error: function (resp){
+                console.log(resp)
+            }
+        })
+    }
+    function updateItem(){
+        const id = $("#id").val()
+        const name = $("#name").val()
+        const price = $("#price").val()
+        const qty = $("#qty").val()
+
+
+        if(!id){
+            alert("Please enter ID")
+            return;
+        }
+        if(!name){
+            alert("Please enter Name")
+            return;
+        }
+        if (isNaN(price)||Number(price) <= 0) {
+            alert("Price must be a positive number")
+            return;
+        }
+        if (!qty){
+            alert("Please enter Quantity")
+        }
+        if (isNaN(qty)||Number(qty) <= 1) {
+            alert("Quantity must be at least 1")
+            return;
+        }
+        $.ajax({
+            url:'http://localhost:8080/api/v1/item',
+            method: 'PUT',
+            contentType:'application/json',
+            data:JSON.stringify({
+                id: id,
+                name: name,
+                price:price,
+                quantity:qty
+            }),
+            success: function (resp){
+                if (resp.status==200){
+                    alert(resp.message)
+                }else {
+                    alert("Item not saved")
+                }
+                clearForm()
+                console.log(resp)
+                getAll()
+            },
+            error: function (resp){
+                console.log(resp)
+            }
+        })
+    }
+    function deleteItem(){
+        const id = $("#id").val()
+
+        $.ajax({
+            url:'http://localhost:8080/api/v1/item/'+id,
+            method: 'DELETE',
+            success: function (resp){
+                if (resp.status==200){
+                    alert(resp.message)
+                }else {
+                    alert("item not deleted")
+                }
+                clearForm()
+                getAll()
+                console.log(resp)
+            },
+            error: function (resp){
+                console.log(resp)
+            }
+        })
+    }
+    function getAll(){
+        $("#tablebody").empty();
+        $.ajax({
+            url:'http://localhost:8080/api/v1/item',
+            method:'GET',
+            success: function (resp){
+                console.log(resp)
+                for(let item of resp){
+                    const tableRow = "<tr>" +
+                        "<td>" + item.id + "</td>" +
+                        "<td>" + item.name + "</td>" +
+                        "<td>" + item.price + "</td>" +
+                        "<td>" + item.quantity + "</td>" +
+                        "</tr>"
+                    $("#tablebody").append(tableRow);
+                }
+            },
+            error: function (resp){
+                console.log(resp)
+            }
+        })
+
+    }
+    window.onload(
+        getAll()
+    )
+    function clearForm(){
+       let field1 = document.getElementById("id");
+       field1.value = "";
+
+       let field2 = document.getElementById("name");
+       field2.value = "";
+
+       let field3 = document.getElementById("price");
+       field3.value = "";
+
+       let field4 = document.getElementById("qty");
+       field4.value = "";
+    }
+</script>
+</body>
+</html>

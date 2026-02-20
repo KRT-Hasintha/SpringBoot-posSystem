@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+
+    <style>
+        body {
+            margin: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #eef2ff, #c7d2fe);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+
+        .container {
+            background-color: white;
+            padding: 50px 40px;
+            border-radius: 16px;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.15);
+            text-align: center;
+            width: 380px;
+            animation: fadeIn 0.8s ease-in-out;
+        }
+
+        h1 {
+            margin-bottom: 35px;
+            font-size: 30px;
+            color: #1e293b;
+            letter-spacing: 1px;
+        }
+
+        a {
+            display: block;
+            text-decoration: none;
+            margin: 18px 0;
+            padding: 14px;
+            border-radius: 10px;
+            font-weight: 600;
+            transition: 0.3s;
+            color: white;
+            background: linear-gradient(135deg, #4f46e5, #4338ca);
+        }
+
+        a:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 18px rgba(0,0,0,0.2);
+        }
+
+        a:nth-child(3) {
+            background: linear-gradient(135deg, #0ea5e9, #0284c7);
+        }
+
+        a:nth-child(4) {
+            background: linear-gradient(135deg, #22c55e, #16a34a);
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h1>POS SYSTEM</h1>
+    <a href="page/customer.html" id="customer">Customer Page</a>
+    <a href="page/item.html">Item Pge</a>
+    <a href="page/place-order.html">Place Order</a>
+</div>
+
+</body>
+</html>
